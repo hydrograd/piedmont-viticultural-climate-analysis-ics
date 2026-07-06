@@ -34,6 +34,7 @@ notebooks/                01 production, 02 climate, 03 compound, 04 dashboard
 data/                     raw inputs (git-ignored) and processed CSVs
 ANALYSIS.md               the science: data, method, results, limitations
 WALKTHROUGH.md            developer walkthrough of the repo
+REVISIONS.md              log of substantive changes made after review
 ```
 
 The notebooks are the recommended entry point; they import the tested modules in

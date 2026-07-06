@@ -125,8 +125,15 @@ def headline(merged: pd.DataFrame) -> dict:
     if len(compound) and len(normal):
         out["pct_difference"] = ((out["mean_yield_compound"] - out["mean_yield_normal"])
                                  / out["mean_yield_normal"] * 100.0)
+        # Detrended-anomaly comparison. Yield carries a trend (vineyard area
+        # declines), so comparing raw means across two small groups is noisy;
+        # the anomaly means remove that trend and are the more robust figure.
+        out["mean_anom_compound"] = float(compound["yield_anom_pct"].mean())
+        out["mean_anom_normal"] = float(normal["yield_anom_pct"].mean())
+        out["anom_gap_pts"] = out["mean_anom_compound"] - out["mean_anom_normal"]
     else:
         out["pct_difference"] = np.nan
+        out["mean_anom_compound"] = out["mean_anom_normal"] = out["anom_gap_pts"] = np.nan
     return out
 
 

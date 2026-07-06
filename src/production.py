@@ -76,6 +76,11 @@ def build_province_series(df: pd.DataFrame) -> pd.DataFrame:
            .agg(production=("production", "sum"), area_ha=("area_ha", "sum"))
            .reset_index())
     out["yield_per_ha"] = out["production"] / out["area_ha"]
+    # Each province's yield as a percent deviation from its own period average.
+    # This is what the dashboard map shades by, so a weak year reads low across
+    # the region rather than every province sitting at a near-constant colour.
+    out["yield_vs_mean_pct"] = out.groupby("region_code")["yield_per_ha"].transform(
+        lambda s: (s - s.mean()) / s.mean() * 100.0)
     return out.sort_values(["region_code", "year"])
 
 

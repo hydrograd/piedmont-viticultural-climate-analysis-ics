@@ -158,6 +158,12 @@ drought-tolerant. This is a non-obvious finding in its own right.
 6. **Threshold sensitivity.** `COMPOUND_SEVERITY_PCTL` is the single biggest lever
    on the headline; it is exposed in config and the dose-response is reported
    alongside the result.
+7. **Climate is not the dominant driver.** Several low-yield years (2008, 2011,
+   2012) were mild and wet, so their losses are unrelated to heat or drought, and
+   the record's lowest year (2008) is not a compound year at all. The compound
+   effect is real but sits inside substantial non-climate variance (economics,
+   vine age, biennial bearing, disease). The dashboard shows the trend line and
+   states this rather than implying climate explains every dip.
 
 ---
 

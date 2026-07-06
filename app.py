@@ -28,6 +28,9 @@ MUTED = "#A89AA0"
 CHAMPAGNE = "#C2A878"
 FONT = "Roboto"
 WINE_SCALE = ["#E7DDD0", "#D3B9AE", "#B98E8C", "#9C6370", "#7A4256", "#5A2C3E"]
+# Diverging scale for the yield-anomaly view: below average (burgundy) through
+# neutral (cream) to above average (green).
+DIVERGING = ["#7A2E3B", "#B07A82", "#E7DDD0", "#8FB0A0", "#3B6E5A"]
 CATEGORY_COLORS = {
     "normal": "#5E5860", "heat_only": "#B0764C", "drought_only": "#C2A878",
     "concurrent": "#7A4256", "sequential": "#5B5470",
@@ -39,7 +42,11 @@ CATEGORY_HELP = {
     "concurrent": "extreme heat and drought overlapping in a month",
     "sequential": "extreme heat and drought in different months, not overlapping",
 }
-METRICS = {"yield_per_ha": "Yield (quintals / ha)", "production": "Production (quintals)"}
+METRICS = {
+    "yield_vs_mean_pct": "Yield vs province average (%)",
+    "yield_per_ha": "Yield (quintals / ha)",
+    "production": "Production (quintals)",
+}
 
 st.set_page_config(page_title="Piedmont Viticultural Climate Analysis", layout="wide")
 
@@ -87,12 +94,17 @@ if comp is not None:
             f"border-radius:6px;padding:12px 16px;color:{CREAM}'>"
             f"In severe compound heat-and-drought years (<b>{yrs}</b>), Piedmont grape yield was "
             f"<b>{abs(h['pct_difference']):.1f}% {direction}</b> than in normal years "
-            f"({h['mean_yield_compound']:.0f} vs {h['mean_yield_normal']:.0f} quintals per hectare).</div>",
+            f"({h['mean_yield_compound']:.0f} vs {h['mean_yield_normal']:.0f} quintals per hectare). "
+            f"Adjusting for the long-run decline in vineyard area, compound years sat about "
+            f"<b>{abs(h['anom_gap_pts']):.0f} points below trend</b>, while normal years were "
+            f"close to trend on average.</div>",
             unsafe_allow_html=True,
         )
-    st.caption("Yield = grape production ÷ vineyard area. 1 quintal = 100 kg. "
-               "A compound event is defined as a year in the top quartile for heatwave days "
-               "and the bottom quartile for growing-season rainfall.")
+    st.caption("Yield = grape production ÷ vineyard area. 1 quintal = 100 kg. A compound event "
+               "is a year in the top quartile for heatwave days and the bottom quartile for "
+               "growing-season rainfall. Climate is one driver among several: some low-yield "
+               "years (for example 2008 and 2012) were mild and wet, so those losses were not "
+               "climate-related. The dotted line on the timeline is the long-run trend.")
 
 st.write("")
 left, right = st.columns([3, 2], gap="large")
@@ -102,11 +114,23 @@ with left:
     metric = st.radio("Shade the map by", list(METRICS), horizontal=True,
                       format_func=lambda m: METRICS[m])
     dfm = prov.sort_values("year")
+
+    is_anom = metric == "yield_vs_mean_pct"
+    if is_anom:
+        # Symmetric, diverging scale centred on 0, clipped to the 95th percentile
+        # so one volatile small province does not dominate the range.
+        rng = float(dfm[metric].abs().quantile(0.95))
+        scale, range_color, midpoint = DIVERGING, (-rng, rng), 0
+    else:
+        scale = WINE_SCALE
+        range_color = (dfm[metric].min(), dfm[metric].quantile(0.98))
+        midpoint = None
+
     fig = px.choropleth_map(
         dfm, geojson=geo, locations="region_code", featureidkey="properties.NUTS_ID",
         color=metric, animation_frame="year",
-        color_continuous_scale=WINE_SCALE,
-        range_color=(dfm[metric].min(), dfm[metric].quantile(0.98)),
+        color_continuous_scale=scale, range_color=range_color,
+        color_continuous_midpoint=midpoint,
         map_style="carto-darkmatter", zoom=6.7, center={"lat": 44.9, "lon": 8.0},
         opacity=0.85, hover_name="region_name",
         labels={metric: METRICS[metric], "year": "Year"},
@@ -119,17 +143,30 @@ with left:
     if fig.layout.updatemenus:
         fig.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 700
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("Each province is shaded by its value for the selected year; darker means higher. "
-               "Drag the year slider or press play to move through 2006 to 2023. "
-               "Turin is absent from the ISTAT extract, so it is left unshaded.")
+    if is_anom:
+        st.caption("Each province is shaded by its yield relative to its own 2006 to 2023 "
+                   "average: burgundy is a below-average year, green is above. Weaker years "
+                   "read burgundy across the region. Small provinces such as Verbano are "
+                   "volatile and carry little of the regional total, so an occasional bright "
+                   "province in an otherwise weak year is expected. Turin is absent from the "
+                   "ISTAT extract and is left unshaded.")
+    else:
+        st.caption("Each province is shaded by its absolute value for the selected year; "
+                   "darker means higher. Note that province yields differ from the regional "
+                   "figure in the headline, which is the area-weighted total. Turin is absent "
+                   "from the ISTAT extract and is left unshaded.")
 
 # --- compound timeline + ribbon -------------------------------------------
 with right:
     if comp is not None:
         st.markdown(f"<p style='color:{CREAM};margin-bottom:2px;font-weight:500'>Yield over time</p>"
                     f"<p style='color:{MUTED};margin-top:0;font-size:13px'>each point coloured by that "
-                    f"year's climate category</p>", unsafe_allow_html=True)
+                    f"year's climate category; dotted line is the long-run trend</p>",
+                    unsafe_allow_html=True)
         t = go.Figure()
+        t.add_scatter(x=comp["year"], y=comp["yield_trend"], mode="lines", name="trend",
+                      line=dict(color="#6E6168", width=1, dash="dot"), hoverinfo="skip",
+                      showlegend=False)
         t.add_scatter(x=comp["year"], y=comp["yield_per_ha"], mode="lines",
                       line=dict(color=MUTED, width=1.5), hoverinfo="skip", showlegend=False)
         for cat, col in CATEGORY_COLORS.items():
