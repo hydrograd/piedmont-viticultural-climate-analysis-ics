@@ -125,7 +125,28 @@ Mild compound years are buffered (vines are resilient); **genuinely severe**
 compound events cause real losses. A monotonic dose-response is much stronger
 evidence than one hand-picked cut-off.
 
-### 5.4 What's actually driving it, heat, not drought
+### 5.4 Statistical significance, stated plainly
+With only two years in the severe compound bucket, the comparison should be read
+alongside its actual statistical strength, not just its point estimate:
+
+| Test | Result |
+|------|--------|
+| Compound years (n=2) | mean anomaly −8.1%, std 4.4 |
+| Normal years (n=10) | mean anomaly +0.2%, std 8.9 |
+| Welch's t-test | p = 0.140 |
+| Mann-Whitney U | p = 0.182 |
+| Bootstrap 90% CI on the gap | [−14.1, −2.7] points |
+
+**The gap does not clear conventional significance at this sample size.** This is
+stated directly rather than left implicit: the finding is a credible, physically
+plausible pattern, corroborated by the monotonic dose-response above, not a
+statistically proven effect. The confidence interval is wide and its upper edge
+sits close to zero. More years, or pooling multiple regions into one model, would
+be needed to sharpen this; a regression with a continuous heat-drought
+interaction term (rather than the two-group comparison used here) would also be
+a more rigorous test of the same hypothesis and is a natural next step.
+
+### 5.5 What's actually driving it, heat, not drought
 Correlating each climate index with detrended yield:
 
 | Index | Correlation with yield anomaly |
@@ -144,8 +165,10 @@ drought-tolerant. This is a non-obvious finding in its own right.
 
 ## 6. Limitations
 
-1. **Small sample.** 18 years; only 2 severe compound years. The dose-response
-   mitigates this but does not remove it. No formal significance test yet.
+1. **Small sample.** 18 years; only 2 severe compound years. A Welch's t-test on
+   the compound-vs-normal gap gives p = 0.140 (see section 5.4); it does not
+   clear conventional significance. The dose-response is corroborating evidence,
+   not proof.
 2. **Confounding.** 2017's collapse was also driven by an **April frost**, not
    summer heat/drought. Production has many non-climate drivers (frost, vine age,
    alternate bearing, economics, disease).
@@ -212,8 +235,9 @@ rebuilding anything. The Piedmont 18-year result is exactly what all of Italy ov
   its heat/drought and reduce confounding.
 - **Quality alongside quantity**, sugar/acidity or vintage ratings, since the
   economic story for fine wine is often the opposite of the yield story.
-- **Statistical testing**, bootstrap / permutation tests for the compound gap;
-  regression with multiple predictors instead of a two-group mean comparison.
+- **Regression with a continuous interaction term** (heat x drought) instead of
+  a two-group mean comparison, the natural next step in statistical rigor now
+  that significance has been checked (section 5.4) rather than assumed.
 - **More regions / crops**, the pipeline is parameterised (`config.py`) to
   retarget quickly.
 
