@@ -96,6 +96,33 @@ git-ignored; see `data/raw/README.md` for what to place there. The processed CSV
 under `data/processed/` are committed, so the climate, compound, and dashboard
 stages run from a clean checkout without the raw ISTAT input.
 
+## Tests
+
+```bash
+pip install -r requirements.txt
+pytest
+```
+
+44 tests covering the three stages the result depends on:
+
+- **`tests/test_production.py`** — the header-shift correction, which is the
+  highest-risk step in the project. The source CSV labels its columns one
+  position to the left of the values they describe, so an uncorrected read puts
+  the crop name in `year` and the area in `production` without raising. Also
+  covers the province filter, and that regional yield is recomputed from the
+  regional totals rather than averaged from per-province ratios.
+- **`tests/test_climate_indices.py`** — the seasonal windows and the heatwave
+  threshold, including the boundary case of a day sitting exactly on the
+  threshold. A hot May must not inflate the summer count, and a month with no
+  observations must come back as NaN rather than as a cold, dry month.
+- **`tests/test_compound.py`** — the extreme-value flags, the five compound
+  categories, and the detrending. The property the headline rests on is that a
+  series containing only a trend produces no anomaly, so the structural decline
+  in harvested area cannot read as a climate signal.
+
+The suite uses synthetic inputs built in `tests/conftest.py` and touches no
+downloaded data, so it runs in under a second from a clean checkout.
+
 ## Author
 
 Shrey Shukla ([LinkedIn](https://www.linkedin.com/in/shreysshukla))
