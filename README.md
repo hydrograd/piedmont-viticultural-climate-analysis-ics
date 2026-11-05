@@ -1,5 +1,7 @@
 # Piedmont Viticultural Climate Analysis
 
+[![tests](https://github.com/hydrograd/piedmont-viticultural-climate-analysis-ics/actions/workflows/tests.yml/badge.svg)](https://github.com/hydrograd/piedmont-viticultural-climate-analysis-ics/actions/workflows/tests.yml)
+
 How do heatwaves and rainfall deficits, alone and as **compound events**
 (concurrent or sequential), affect wine-grape production in **Piedmont, Italy**?
 
